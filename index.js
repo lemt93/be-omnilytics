@@ -2,7 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import cluster from 'cluster'
 import os from 'os'
-import generate from './generateData.js'
+import generateData from './data.js'
+import generateReport from './reports.js'
 
 const numCPUs = os.cpus().length
 const app = express()
@@ -17,48 +18,21 @@ function main() {
     // Avoid blocking main thread by using worker threads for CPU intensive ops
     // e.g: crypto/generating truly random data
     // For sake of simplicity, no error handling for worker threads!
-    const { url, fileName } = await generate({ outputDir: staticDir })
+    const { url, fileName } = await generateData({ outputDir: staticDir })
     res.send({
       url,
       fileName
     })
 
   })
-  app.get('/reports/:id', (req, res) => {
-    console.log(req.params.id)
-    // TODO: read and generate report from generated file
-    // Non-blocking IO ops
-    // But consider processing data after read is a CPU-intensive ops
-    // => Move to worker thread
-    // const reports = await getReport(req.params.id)
-    res.send([
-        {
-          id: 1,
-          name: 'Integers',
-          noOfElements: 32
-        },
-        {
-          id: 2,
-          name: 'Real numbers',
-          noOfElements: 23
-        },
-        {
-          id: 3,
-          name: 'Alphabetical strings',
-          noOfElements: 111
-        },
-        {
-          id: 4,
-          name: 'Alphanumerics',
-          noOfElements: 1040
-        }
-      ]
-    )
+  app.get('/reports/:id', async (req, res) => {
+    const { reports } = await generateReport({ staticDir, fileName: req.params.id })
+    res.send(reports)
   })
 
-  const listener = app.listen(port, () => {
-    console.log(listener.address())
+  app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
+    console.log(`Process ${process.pid}`)
   })
 }
 
