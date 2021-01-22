@@ -1,3 +1,4 @@
+import fs from 'fs'
 import express from 'express'
 import cors from 'cors'
 import cluster from 'cluster'
@@ -17,11 +18,19 @@ function main() {
   app.post('/generate', async (req, res) => {
     // Avoid blocking main thread by using worker threads for CPU intensive ops
     // e.g: crypto/generating truly random data
-    // For sake of simplicity, no error handling for worker threads!
-    const { url, fileName } = await generateData({ outputDir: staticDir })
-    res.send({
-      url,
-      fileName
+    const buff = await generateData()
+    const fileName = String(Math.floor(Math.random() * 1000))
+    const path = `${staticDir}/${fileName}`
+
+    if (!fs.existsSync(staticDir)) {
+      fs.mkdirSync(staticDir)
+    }
+
+    fs.writeFile(path, buff, { encoding: 'utf-8' }, () => {
+      res.json({
+        fileName,
+        url: `http://localhost:4000/${path}`
+      })
     })
 
   })
