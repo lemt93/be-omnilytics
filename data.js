@@ -5,9 +5,7 @@ import { performance } from 'perf_hooks'
 let generateData
 
 if (isMainThread) {
-  // For sake of simplicity,
-  // No error handling for worker threads!
-  // No pool!
+
   
   function generate(workerData) {
     return new Promise((resolve, reject) => {
@@ -22,36 +20,48 @@ if (isMainThread) {
   }
   
   generateData = function (...args) {
+    // For sake of simplicity,
+    // No error handling for worker threads!
+    // No pool! 2 threads
     return Promise.all([
       generate(...args),
       generate(...args)
     ]).then(results => results.reduce((acc, item) => Buffer.concat([acc.output, item.output])))
   }
 } else {
+  // TODO: To improve/squeeze out a little bit more performance
+  // e.g: buffer.write() instead of str +=
+  // for (let i = 0; i < crypto.randomInt(1, 3); i++) {
+  //   str += alphabetMask[crypto.randomInt(0, alphabetMask.length)]
+  // }
   const alphabetMask = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
   const alphanumericMask = alphabetMask + '0123456789'
-  
+  let offset = 0
+  // Use 2 threads
+  const output = Buffer.allocUnsafe(1024 * 1024)
+
+  function addSeparator() {
+    offset += output.write(',', offset, 'utf-8')
+  }
   function randomInt() {
-    return String(crypto.randomInt(Math.pow(2, 48) - 1))
+    offset += output.write(String(crypto.randomInt(Math.pow(2, 48) - 1)), offset, 'utf-8') 
+    addSeparator()
   }
   function randomFloat() {
-    return String(Math.random() * crypto.randomInt(10))
+    offset += output.write(String(Math.random() * crypto.randomInt(10)), offset, 'utf-8')
+    addSeparator()
   }
   function randomAlphanumeric() {
-    let str = ''
-    for (let i = 0; i < crypto.randomInt(1, 3); i++) {
-      str += alphanumericMask[crypto.randomInt(0, alphanumericMask.length)]
+    for (let i = 0; i < crypto.randomInt(1, 5); i++) {
+      offset += output.write(alphanumericMask[crypto.randomInt(0, alphanumericMask.length)], offset, 'utf-8')
     }
-
-    return str
+    addSeparator()
   }
   function randomAlphabet() {
-    let str = ''
-    for (let i = 0; i < crypto.randomInt(1, 3); i++) {
-      str += alphabetMask[crypto.randomInt(0, alphabetMask.length)]
+    for (let i = 0; i < crypto.randomInt(1, 5); i++) {
+      offset += output.write(alphabetMask[crypto.randomInt(0, alphabetMask.length)], offset, 'utf-8')
     }
-    
-    return str
+    addSeparator()
   }
   
   const funcs = [
@@ -64,40 +74,17 @@ if (isMainThread) {
   function random(...args) {
     return funcs[crypto.randomInt(0, 4)].apply(this, args)
   }
-
-  // TODO: improve generate perf by writing directly into the buffer
-  // e.g: buffer.write() instead of str +=
-  // for (let i = 0; i < crypto.randomInt(1, 3); i++) {
-  //   str += alphabetMask[crypto.randomInt(0, alphabetMask.length)]
-  // }
+  
   const start = performance.now()
-  let offset = 0
-  const output = Buffer.allocUnsafe(1024 * 1024)
   while (offset < output.length) {
-    let writtenLength = output.write(random(output.length - offset), offset, 'utf-8')
-    writtenLength += output.write(',', offset + writtenLength, 'utf-8')
-
-    offset += writtenLength
+    random(output)
   }
   const end = performance.now()
-  console.log(end - start)
+  console.log(process.pid, end - start)
   
   parentPort.postMessage({
     output
   })
-  
-  // const path = `${outputDir}/${fileName}`
-  //
-  // if (!fs.existsSync(outputDir)) {
-  //   fs.mkdirSync(outputDir)
-  // }
-  //
-  // fs.writeFile(path, output, { encoding: 'utf-8' }, () => {
-  //   parentPort.postMessage({
-  //     fileName,
-  //     url: `http://localhost:4000/${path}`
-  //   })
-  // })
 }
 
 export default generateData
