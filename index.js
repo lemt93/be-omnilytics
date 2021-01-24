@@ -4,8 +4,8 @@ import cors from 'cors'
 import cluster from 'cluster'
 import crypto from 'crypto'
 import os from 'os'
-import generateData from './data.js'
-import generateReport from './reports.js'
+import generateData from './workers/data.js'
+import generateReport from './workers/reports.js'
 
 const numCPUs = os.cpus().length
 const app = express()
