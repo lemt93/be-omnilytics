@@ -14,6 +14,10 @@ const staticPath = '/files'
 const staticDir = 'files'
 
 const main = () => {
+  if (!fs.existsSync(staticDir)) {
+    fs.mkdirSync(staticDir)
+  }
+  
   app.use(cors())
   app.use(staticPath, express.static(staticDir))
   app.post('/generate', async (req, res) => {
@@ -22,12 +26,8 @@ const main = () => {
     const buff = await generateData()
     const fileName = crypto.randomBytes(6).toString('hex')
     const path = `${staticDir}/${fileName}`
-
-    if (!fs.existsSync(staticDir)) {
-      fs.mkdirSync(staticDir)
-    }
-
-    await  fs.promises.writeFile(path, buff)
+    
+    await fs.promises.writeFile(path, buff)
     res.json({
       fileName,
       url: `http://localhost:4000/${path}`
@@ -35,7 +35,7 @@ const main = () => {
   })
   app.get('/reports/:id', async (req, res) => {
     const { reports } = await generateReport({ staticDir, fileName: req.params.id })
-    res.send(reports)
+    res.json(reports)
   })
   app.get('/hello', (req, res) => {
     res.send('Hello, non-blocking!')
