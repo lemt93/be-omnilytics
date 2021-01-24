@@ -10,29 +10,6 @@ const REAL = Symbol('real')
 const ALPHABET = Symbol('alphabetic')
 const ALPHANUM = Symbol('alphanumeric')
 
-const typeConfigs = {
-  [INT]: (numElements = 0) => ({
-    id: 1, // A unique identifier, use integer for simplicity
-    name: 'Integer numbers',
-    numElements
-  }),
-  [REAL]: (numElements = 0) => ({
-    id: 2,
-    name: 'Real numbers',
-    numElements
-  }),
-  [ALPHABET]: (numElements = 0) => ({
-    id: 3,
-    name: 'Alphabet',
-    numElements: numElements
-  }),
-  [ALPHANUM]: (numElements = 0) => ({
-    id: 4,
-    name: 'Alphanumeric',
-    numElements
-  })
-}
-
 const isCharInt = (char = '') => (
   (char.charCodeAt(0) >= 48 && char.charCodeAt(0) <= 57)
 )
@@ -106,10 +83,33 @@ const reportAlphanumeric = (str = '') => {
 
 const configurations = {
   // [generator, typeChecker]
-  INT: [randomInt, reportInt],
-  REAL: [randomFloat, reportFloat],
-  ALPHABET: [randomAlphabet, reportAlphabet],
-  ALPHANUM: [randomAlphanumeric, reportAlphanumeric]
+  [INT]: [randomInt, reportInt],
+  [REAL]: [randomFloat, reportFloat],
+  [ALPHABET]: [randomAlphabet, reportAlphabet],
+  [ALPHANUM]: [randomAlphanumeric, reportAlphanumeric]
+}
+
+const typeConfigs = {
+  [INT]: (numElements = 0) => ({
+    id: 1, // A unique identifier, use integer for simplicity
+    name: 'Integer numbers',
+    numElements
+  }),
+  [REAL]: (numElements = 0) => ({
+    id: 2,
+    name: 'Real numbers',
+    numElements
+  }),
+  [ALPHABET]: (numElements = 0) => ({
+    id: 3,
+    name: 'Alphabet',
+    numElements: numElements
+  }),
+  [ALPHANUM]: (numElements = 0) => ({
+    id: 4,
+    name: 'Alphanumeric',
+    numElements
+  })
 }
 
 export {

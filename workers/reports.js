@@ -53,8 +53,11 @@ if (isMainThread) {
 } else {
   const { fileName, staticDir } = workerData
   const reporters = Object
-    .entries(configurations)
-    .map(([_index, [_generator, reporter]]) => reporter)
+    .getOwnPropertySymbols(configurations)
+    .reduce((acc, key) => {
+      const [_genarator, typeChecker] = configurations[key]
+      return [...acc, typeChecker]
+    }, [])
   
   parentPort.postMessage({
     reports: report(`${staticDir}/${fileName}`, reporters)

@@ -35,8 +35,11 @@ if (isMainThread) {
   // }
   // return str
   const funcs = Object
-    .entries(configurations)
-    .map(([_index, [generator]]) => generator)
+    .getOwnPropertySymbols(configurations)
+    .reduce((acc, key) => {
+      const [generator] = configurations[key]
+      return [...acc, generator]
+    }, [])
   
   function random(...args) {
     return funcs[crypto.randomInt(0, funcs.length)].apply(this, args)
