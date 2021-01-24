@@ -13,7 +13,7 @@ const port = 4000
 const staticPath = '/files'
 const staticDir = 'files'
 
-function main() {
+const main = () => {
   app.use(cors())
   app.use(staticPath, express.static(staticDir))
   app.post('/generate', async (req, res) => {
@@ -42,7 +42,7 @@ function main() {
   })
   
   app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
+    console.log(`Listening at http://localhost:${port}`)
     console.log(`Process ${process.pid}`)
   })
 }
