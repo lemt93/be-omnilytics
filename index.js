@@ -4,8 +4,11 @@ import cors from 'cors'
 import cluster from 'cluster'
 import crypto from 'crypto'
 import os from 'os'
-import generateData from './workers/data.js'
+import { execFile } from 'child_process'
+import { promisify } from 'util'
+// import generateData from './workers/data.js'
 import generateReport from './workers/reports.js'
+const execFileAsync = promisify(execFile)
 
 const numCPUs = os.cpus().length
 const app = express()
@@ -23,11 +26,9 @@ const main = () => {
   app.post('/generate', async (req, res) => {
     // Avoid blocking main thread by using worker threads for CPU intensive ops
     // e.g: crypto/generating truly random data
-    const buff = await generateData()
-    const fileName = crypto.randomBytes(6).toString('hex')
+    const { stdout: fileName } = await execFileAsync('./random.sh', [staticDir])
     const path = `${staticDir}/${fileName}`
     
-    await fs.promises.writeFile(path, buff)
     res.json({
       fileName,
       url: `http://localhost:4000/${path}`
